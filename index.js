@@ -23,6 +23,23 @@ app.get("/", (req, res) => {
   res.send("Cars Doctor is Running now");
 });
 
+/// custom middle were
+
+const verifyToken = async (req, res, next) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    return res.status(401).send({ message: "unauthorized" });
+  }
+
+  jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ message: "Unauthorized Access" });
+    }
+    req.user = decoded;
+    next();
+  });
+};
+
 const uri = `mongodb+srv://${process.env.DB_NAME}:${process.env.DB_PASS}@cluster0.ykv18.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -83,10 +100,13 @@ async function run() {
 
     // just jeta login acge emil ota paowar jono summ
 
-    app.get("/bookings", async (req, res) => {
-      let query = {};
+    app.get("/bookings", verifyToken, async (req, res) => {
       console.log(req.query.email);
       // console.log("tok took token", req.cookies.token);
+      if (req.query.email !== req.query.email) {
+        return res.status(403).send({ message: "Forbidden Access" });
+      }
+      let query = {};
       if (req.query?.email) {
         query = { email: req.query.email };
       }
