@@ -5,8 +5,6 @@ const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
-// jwt token require
-
 const port = process.env.PORT || 5000;
 
 // middle were
@@ -28,13 +26,14 @@ app.get("/", (req, res) => {
 
 const verifyToken = async (req, res, next) => {
   const token = req.cookies?.token;
+  console.log("middle were token", token);
   if (!token) {
-    return res.status(401).send({ message: "unauthorized" });
+    return res.status(401).send({ message: "Unauthorized Access" });
   }
 
   jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
     if (err) {
-      return res.status(403).send({ message: "Unauthorized Access" });
+      return res.status(403).send({ message: "Unauthorized Access " });
     }
     req.user = decoded;
     next();
@@ -62,17 +61,24 @@ async function run() {
     //  jwt token created auth relet
     app.post("/jwt", (req, res) => {
       const user = req.body;
-      console.log(user);
+      // console.log(user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
         expiresIn: "1h",
       });
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: false, // https hole true ha be
+          secure: true, // https hole true ha be
           sameSite: "none",
         })
         .send({ success: true });
+    });
+
+    // jwt token logout to cookie remove
+    app.post("/logout", async (req, res) => {
+      const user = req.body;
+      console.log("logOut User", user);
+      res.clearCookie("token", { maxAge: 0 }).send({ logout: true });
     });
 
     // services///
@@ -96,15 +102,16 @@ async function run() {
       const booking = req.body;
       const result = await bookingCollection.insertOne(booking);
       res.send(result);
-      console.log(booking);
+      // console.log(booking);
     });
 
     // just token created just
-    app.get("/bookings", async (req, res) => {
+    app.get("/bookings", verifyToken, async (req, res) => {
       //verifyToken
-      console.log(req.query.email);
-      // console.log("tok took token", req.cookies.token);
-      if (req.query.email !== req.query.email) {
+      // console.log(req.cookies);
+      console.log("token user info", req.user);
+
+      if (req.user.email !== req.user.email) {
         return res.status(403).send({ message: "Forbidden Access" });
       }
       let query = {};
