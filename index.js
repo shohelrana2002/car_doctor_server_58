@@ -24,6 +24,7 @@ app.get("/", (req, res) => {
 });
 
 /// custom middle were
+// and token verify custom
 
 const verifyToken = async (req, res, next) => {
   const token = req.cookies?.token;
@@ -58,7 +59,7 @@ async function run() {
     const serviceCollection = client.db("carDoctor").collection("services");
     const bookingCollection = client.db("carDoctor").collection("bookings");
 
-    //  jwt token
+    //  jwt token created auth relet
     app.post("/jwt", (req, res) => {
       const user = req.body;
       console.log(user);
@@ -69,7 +70,7 @@ async function run() {
         .cookie("token", token, {
           httpOnly: true,
           secure: false, // https hole true ha be
-          // sameSite: "none",
+          sameSite: "none",
         })
         .send({ success: true });
     });
@@ -98,9 +99,9 @@ async function run() {
       console.log(booking);
     });
 
-    // just jeta login acge emil ota paowar jono summ
-
-    app.get("/bookings", verifyToken, async (req, res) => {
+    // just token created just
+    app.get("/bookings", async (req, res) => {
+      //verifyToken
       console.log(req.query.email);
       // console.log("tok took token", req.cookies.token);
       if (req.query.email !== req.query.email) {
